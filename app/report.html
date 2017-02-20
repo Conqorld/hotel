@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>宾馆账单</title>
+	<script src="./js/vue.js"></script>
+  <script src="./js/roomdata.js"></script>
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/element.css" rel="stylesheet">
+  <!-- <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script> -->
+  <link rel="stylesheet" type="text/css" href="css/you.css">
+  <script src="js/jquery.js"></script>
+  <script src="js/jquery.min.js"></script>
+  <script src="js/elment.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+</head>
+<body>
+ <nav class="navbar navbar-inverse" role="navigation" style="-webkit-app-region: drag;">
+      <div class="container">
+        <div class="navbar-header" style="-webkit-app-region: no-drag;">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="index.html">WanQing Hotel</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav" style="-webkit-app-region: no-drag;">
+            <li><a href="room.html">房间管理</a></li>
+			<li><a href="nowreport.html">今日账单</a></li>
+            <li><a href="record.html">账单流水</a></li>
+            <li class="active"><a href="#">统计报表</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right" style="-webkit-app-region: no-drag;">
+            <li>
+              <span class="glyphicon glyphicon-remove-sign" id="close" style="color:rgb(187,0,0);line-height: 45px;height: 45px;font-size: 18px"></span>
+            </li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+	<div id="rooms" class="container">
+		<div class="jumbotron">
+      <h2>欢迎来到统计报表页!</h2>
+      <p>现在，开始选择您希望报告的时间段</p>
+      <p>
+        <div class="block">
+          <!--<span class="demonstration">带快捷选项</span>-->
+          <el-date-picker
+          v-model="dateTime"
+          type="datetimerange"
+          :picker-options="pickerOptions2"
+          placeholder="筛选时间范围"
+          align="right">
+        </el-date-picker>
+      </div>
+      <a @click="setparam" class="btn btn-primary" role="button">生成 &raquo;</a>
+    </p>
+  </div>
+  <div class="table-responsive" v-if="paysum>=0">
+    <table class="table table-hover table-striped">
+      <thead>
+          <tr>
+            <th>房间号</th>
+            <th>被开次(天)数</th>
+            <th>收入</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="room in rooms">
+            <td>{{room._id}}</td>
+            <td>{{room.count}}</td>
+            <td>{{room.sum}}</td>
+          </tr>
+        </tbody>
+        <tbody>
+    </table>
+    <table class="table table-hover table-striped">
+      <thead>
+          <tr>
+            <th>房间类型</th>
+            <th>被开次(天)数</th>
+            <th>收入</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="room in types">
+            <td>
+              <span v-if="room._id==1">单人房</span>
+              <span v-if="room._id==2">标准间</span>
+              <span v-if="room._id==3">数码房</span>
+            </td>
+            <td>{{room.count}}</td>
+            <td>{{room.sum}}</td>
+          </tr>
+        </tbody>
+        <tbody>
+    </table>
+    <table class="table table-hover table-striped">
+      <thead>
+          <tr>
+            <th>开房类型</th>
+            <th>被开次(天)数</th>
+            <th>收入</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="room in status">
+            <td>
+              <span v-if="room._id==1">全天房</span>
+              <span v-if="room._id==2">钟点房</span>
+            </td>
+            <td>{{room.count}}</td>
+            <td>{{room.sum}}</td>
+          </tr>
+          <tr>
+            <td><strong>共计收入：{{paysum}}元</strong></td>
+          </tr>
+        </tbody>
+        <tbody>
+    </table>
+  </div>
+	</div>
+
+<script src="./js/function.js"></script>
+<script type="text/javascript">
+//import { single, double, computer } from './js/roomdata.js';
+	
+var rooms = new Vue({
+  el: '#rooms',
+  data: {
+    pickerOptions2: {
+        shortcuts: [ {
+            text: '最近一天',
+            onClick(picker) {
+                const end = new Date();
+                const start = new Date();
+                start.setHours(12);
+                start.setMinutes(0);
+                start.setSeconds(0);
+                start.setMilliseconds(0);
+                end.setTime(start.getTime() - 3600 * 1000 * 24 * 1);
+                picker.$emit('pick', [end,start ]);
+            }
+        },{
+            text: '最近一周',
+            onClick(picker) {
+                const end = new Date();
+                const start = new Date();
+                start.setHours(12);
+                start.setMinutes(0);
+                start.setSeconds(0);
+                start.setMilliseconds(0);
+                end.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+                picker.$emit('pick', [end,start ]);
+            }
+        }, {
+            text: '最近一个月',
+            onClick(picker) {
+                const end = new Date();
+                const start = new Date();
+                start.setHours(12);
+                start.setMinutes(0);
+                start.setSeconds(0);
+                start.setMilliseconds(0);
+                end.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
+                picker.$emit('pick', [end,start ]);
+            }
+        }, {
+            text: '最近三个月',
+            onClick(picker) {
+                const end = new Date();
+                const start = new Date();
+                start.setHours(12);
+                start.setMinutes(0);
+                start.setSeconds(0);
+                start.setMilliseconds(0);
+                end.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
+                picker.$emit('pick', [end,start ]);
+            }
+        }]
+    },
+    dateTime:null,
+    stime:null,
+    etime:null,
+    Options:2,
+    HOptions:0,
+    paysum:-1,
+    rooms:null,
+    types:null,
+    status:null,
+  },
+  methods: {
+    roominit:function dbinit() {
+    	removeall(function() {
+    	let a=this.$data;
+    	for (var i = single.length - 1; i >= 0; i--) {
+    		init(single[i],function (res) {
+    			console.log(res)
+    		})
+    	}
+    	for (var i = double.length - 1; i >= 0; i--) {
+    		init(double[i],function (res) {
+    			console.log(res)
+    		})
+    	}
+    	for (var i = computer.length - 1; i >= 0; i--) {
+    		init(computer[i],function (res) {
+    			console.log(res)
+    		})
+    	}
+    	alert("数据初始化完成！")
+    })
+    },
+    setparam:function() {
+      let a=this.$data;
+      a.HOptions=a.Options;
+      if (a.HOptions==1) {
+        a.stime=a.date;
+        a.etime=new Date((a.stime/1000+86400)*1000);
+      }else if (a.HOptions==2&&a.dateTime) {
+        a.stime=a.dateTime[0];
+        a.etime=a.dateTime[1];
+      }
+      sum(a.stime,a.etime,function(res) {
+        a.paysum=res[0].num_tutorial;
+      });
+      roomsum(a.stime,a.etime,function(res) {
+        a.rooms=res;
+      });
+      typesum(a.stime,a.etime,function(res) {
+        a.types=res;
+      });
+      statussum(a.stime,a.etime,function(res) {
+        a.status=res;
+      });
+      console.log(a.stime);
+      console.log(a.etime);
+    }
+  }
+})
+</script>
+</body>
+</html>

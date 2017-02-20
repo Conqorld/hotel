@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>宾馆账单</title>
+	<script src="./js/vue.js"></script>
+	<script src="./js/roomdata.js"></script>
+	<link href="css/bootstrap.min.css" rel="stylesheet">
+	<link href="css/element.css" rel="stylesheet">
+	<!-- <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script> -->
+	<link rel="stylesheet" type="text/css" href="css/you.css">
+	<script src="js/jquery.js"></script>
+	<script src="js/jquery.min.js"></script>
+	<script src="js/elment.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+</head>
+<body>
+ <nav class="navbar navbar-inverse" role="navigation" style="-webkit-app-region: drag;">
+      <div class="container">
+        <div class="navbar-header" style="-webkit-app-region: no-drag;">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="index.html">WanQing Hotel</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav" style="-webkit-app-region: no-drag;">
+            <li><a href="room.html">房间管理</a></li>
+			<li><a href="nowreport.html">今日账单</a></li>
+            <li class="active"><a href="#">账单流水</a></li>
+            <li><a href="report.html">统计报表</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right" style="-webkit-app-region: no-drag;">
+            <li>
+              <span class="glyphicon glyphicon-remove-sign" id="close" style="color:rgb(187,0,0);line-height: 45px;height: 45px;font-size: 18px"></span>
+            </li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+	<div id="rooms" class="container">
+		<div class="row">
+			<div class="col-md-2">
+	  			<h2>账单流水</h2>
+	  			<p><a v-on:click="roominit" class="btn btn-danger btn-lg" role="button">房态初始化 </a></p>
+	  		</div>
+	  		<div class="col-md-10">
+	  			<div class="panel panel-default">
+  					<div class="panel-heading">
+  						<label class="radio-inline">
+  						  <input type="radio" name="inlineRadioOptions" id="inlineRadio1" value="0" v-model="Options"> 顺序展示
+  						</label>
+  						<label class="radio-inline">
+  						  <input type="radio" name="inlineRadioOptions" id="inlineRadio2" value="1" v-model="Options"> 
+  						  <div class="block">
+  						      <el-date-picker
+  						            v-model="date"
+  						            align="right"
+  						            type="date"
+  						            placeholder="筛选日期"
+  						            :picker-options="pickerOptions1">
+  						      </el-date-picker>
+  						  </div>
+  						</label>
+  						<label class="radio-inline">
+  						  <input type="radio" name="inlineRadioOptions" id="inlineRadio3" value="2" v-model="Options"> 
+  						  <div class="block">
+									<!--<span class="demonstration">带快捷选项</span>-->
+									<el-date-picker
+											v-model="dateTime"
+											type="datetimerange"
+											:picker-options="pickerOptions2"
+											placeholder="筛选时间范围"
+											align="right">
+									</el-date-picker>
+								</div>
+  						</label>
+  						<button class="btn btn-default" @click="setparam">确定</button>
+  					</div>
+  					<div class="panel-body">
+  						<p>每页将展示20条记录,总共有{{maxpage}}页，现在是第{{curpage}}页<span v-if="HOptions!=0">,共计{{paysum}}元</span></p>
+    					<table class="table table-striped">
+    					  <thead>
+    					      <tr>
+    					        <th>房间号</th>
+    					        <th>类别</th>
+    					        <th>房价</th>
+    					        <th>押金</th>
+    					        <th>入住时间</th>
+    					        <th>离店时间</th>
+    					        <th>支付方式</th>
+    					        <th>住店人数</th>
+    					        <th>备注</th>
+    					      </tr>
+    					    </thead>
+    					    <tbody>
+    					      <tr v-for="record in list">
+    					        <td>{{record.id}}</td>
+    					        <td v-if="record.status==0">空房</td>
+    					        <td v-if="record.status==1">全天房</td>
+    					        <td v-if="record.status==2">钟点房</td>
+    					        <td>{{record.pay}}元</td>
+    					        <td>{{record.ya}}元</td>
+    					        <td v-if="!record.ixu">
+    					        	<el-date-picker v-model="record.inittime" type="datetime" readonly placeholder="开房时间">
+    					        	</el-date-picker>
+    					        </td>
+    					        <td v-if="record.ixu">续费</td>
+    					        <td v-if="!record.exu">
+    					        	<el-date-picker v-model="record.endtime" type="datetime" readonly placeholder="退房时间">
+    					        	</el-date-picker>
+    					        </td>
+    					        <td v-if="record.exu">续费</td>
+    					        <td v-if="record.paymethod==0">现金</td>
+    					        <td v-if="record.paymethod==1">微信</td>
+    					        <td v-if="record.paymethod==2">支付宝</td>
+    					        <td>{{record.number}}人</td>
+    					        <td>{{record.other}}</td>
+    					      </tr>
+    					    </tbody>
+    					</table>
+  					</div>
+  					<div class="panel-footer">
+  						<nav>
+  						  <ul class="pager">
+  						    <li class="previous" v-bind:class="{disabled:curpage<=1}"><a href="#" v-on:click="prev">&larr; Older</a></li>
+
+  						    <li class="next" v-bind:class="{disabled:curpage>=maxpage}"><a href="#" v-on:click="nex">Newer &rarr;</a></li>
+  						  </ul>
+  						</nav>
+  					</div>
+				</div>
+	  		</div>
+		</div>
+	</div>
+
+<script src="./js/function.js"></script>
+<script type="text/javascript">
+//import { single, double, computer } from './js/roomdata.js';
+	
+var rooms = new Vue({
+  el: '#rooms',
+  data: {
+    curpage:1,
+    maxpage:0,
+    list:null,
+    pickerOptions1: {
+              shortcuts: [{
+                text: '今天',
+                onClick(picker) {
+                	let date=new Date();
+                	date.setHours(12);
+                	date.setMinutes(0);
+                	date.setSeconds(0);
+                	date.setMilliseconds(0);
+                  picker.$emit('pick', date);
+                }
+              }, {
+                text: '昨天',
+                onClick(picker) {
+                  const date = new Date();
+                  date.setHours(12);
+                	date.setMinutes(0);
+                	date.setSeconds(0);
+                	date.setMilliseconds(0);
+                  date.setTime(date.getTime() - 3600 * 1000 * 24);
+                  picker.$emit('pick', date);
+                }
+              }, {
+                text: '一周前',
+                onClick(picker) {
+                  const date = new Date();
+                  date.setHours(12);
+                	date.setMinutes(0);
+                	date.setSeconds(0);
+                	date.setMilliseconds(0);
+                  date.setTime(date.getTime() - 3600 * 1000 * 24 * 7);
+                  picker.$emit('pick', date);
+                }
+              }]
+            },
+    pickerOptions2: {
+        shortcuts: [ {
+            text: '最近一天',
+            onClick(picker) {
+                const end = new Date();
+                const start = new Date();
+                start.setHours(12);
+                start.setMinutes(0);
+                start.setSeconds(0);
+                start.setMilliseconds(0);
+                end.setTime(start.getTime() - 3600 * 1000 * 24 * 1);
+                picker.$emit('pick', [end,start ]);
+            }
+        },{
+            text: '最近一周',
+            onClick(picker) {
+                const end = new Date();
+                const start = new Date();
+                start.setHours(12);
+                start.setMinutes(0);
+                start.setSeconds(0);
+                start.setMilliseconds(0);
+                end.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+                picker.$emit('pick', [end,start ]);
+            }
+        }, {
+            text: '最近一个月',
+            onClick(picker) {
+                const end = new Date();
+                const start = new Date();
+                start.setHours(12);
+                start.setMinutes(0);
+                start.setSeconds(0);
+                start.setMilliseconds(0);
+                end.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
+                picker.$emit('pick', [end,start ]);
+            }
+        }, {
+            text: '最近三个月',
+            onClick(picker) {
+                const end = new Date();
+                const start = new Date();
+                start.setHours(12);
+                start.setMinutes(0);
+                start.setSeconds(0);
+                start.setMilliseconds(0);
+                end.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
+                picker.$emit('pick', [end,start ]);
+            }
+        }]
+    },
+    Options:0,
+    HOptions:0,
+    date:null,
+    dateTime:null,
+    stime:null,
+    etime:null,
+    paysum:0
+  },
+  mounted:function(){
+  	let a=this.$data
+  	// this.maxpage=8;
+  	count(function(res){
+  		a.maxpage=Math.ceil(res/20);
+  	})
+  	findpage(a.curpage,function(res){
+  		a.list=res;
+  		console.log(a.list)
+  	})
+  },
+  methods: {
+    prev: function () {
+      this.$data.curpage--;
+      let a=this.$data
+      // this.maxpage=8;
+      if (a.HOptions==0) {
+      		count(function(res){
+      			a.maxpage=Math.ceil(res/20);
+      		})
+    		findpage(a.curpage,function(res){
+    		a.list=res;
+    		console.log(a.list)
+    	})
+    	}else{
+    		tcount(a.stime,a.etime,function(res){
+    			a.maxpage=Math.ceil(res/20);
+    		})
+    		sortpage(a.curpage,function(res){
+    			a.list=res;
+    			console.log(a.list)
+    	},a.stime,a.etime)
+    	}
+    },
+    nex:function(){
+    	this.$data.curpage++;
+    	let a=this.$data
+    	// this.maxpage=8;
+    	if (a.HOptions==0) {
+      		count(function(res){
+      			a.maxpage=Math.ceil(res/20);
+      		})
+    		findpage(a.curpage,function(res){
+    		a.list=res;
+    		console.log(a.list)
+    	})
+    	}else{
+    		tcount(a.stime,a.etime,function(res){
+    			a.maxpage=Math.ceil(res/20);
+    		})
+    		sortpage(a.curpage,function(res){
+    			a.list=res;
+    			console.log(a.list)
+    	},a.stime,a.etime)
+    	}
+    	
+    },
+    roominit:function dbinit() {
+    	removeall(function() {
+    	let a=this.$data;
+    	for (var i = single.length - 1; i >= 0; i--) {
+    		init(single[i],function (res) {
+    			console.log(res)
+    		})
+    	}
+    	for (var i = double.length - 1; i >= 0; i--) {
+    		init(double[i],function (res) {
+    			console.log(res)
+    		})
+    	}
+    	for (var i = computer.length - 1; i >= 0; i--) {
+    		init(computer[i],function (res) {
+    			console.log(res)
+    		})
+    	}
+    	alert("数据初始化完成！")
+    })
+    },
+    setparam:function() {
+    	let a=this.$data;
+    	a.HOptions=a.Options;
+    	if (a.HOptions==0) {
+    		a.stime=null;
+    		a.etime=null;
+    	}
+    	else if (a.HOptions==1) {
+    		a.stime=a.date;
+    		a.etime=new Date((a.stime/1000+86400)*1000);
+    	}else if (a.HOptions==2) {
+    		a.stime=a.dateTime[0];
+    		a.etime=a.dateTime[1];
+    	}
+    	a.curpage=1;
+    	if (a.HOptions==0) {
+      		count(function(res){
+      			a.maxpage=Math.ceil(res/20);
+      		})
+    		findpage(a.curpage,function(res){
+    		a.list=res;
+    		console.log(a.list)
+    	})
+    	}else{
+    		tcount(a.stime,a.etime,function(res){
+    			a.maxpage=Math.ceil(res/20);
+    		})
+    		sortpage(a.curpage,function(res){
+    			a.list=res;
+    			console.log(a.list)
+    	},a.stime,a.etime)
+    		sum(a.stime,a.etime,function(res) {
+    			a.paysum=res[0].num_tutorial
+    		})
+    	}
+    	console.log(a.stime);
+    	console.log(a.etime);
+    }
+  }
+})
+</script>
+</body>
+</html>

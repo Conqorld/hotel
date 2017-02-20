@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>宾馆账单</title>
+	<script src="./js/vue.js"></script>
+  <script src="./js/roomdata.js"></script>
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/element.css" rel="stylesheet">
+  <!-- <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script> -->
+  <link rel="stylesheet" type="text/css" href="css/you.css">
+  <script src="js/jquery.js"></script>
+  <script src="js/jquery.min.js"></script>
+  <script src="js/elment.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+</head>
+<body>
+ <nav class="navbar navbar-inverse" role="navigation" style="-webkit-app-region: drag;">
+      <div class="container">
+        <div class="navbar-header" style="-webkit-app-region: no-drag;">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="index.html">WanQing Hotel</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav" style="-webkit-app-region: no-drag;">
+            <li><a href="room.html">房间管理</a></li>
+			<li class="active"><a href="#">今日账单</a></li>
+            <li><a href="record.html">账单流水</a></li>
+            <li><a href="report.html">统计报表</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right" style="-webkit-app-region: no-drag;">
+            <li>
+              <span class="glyphicon glyphicon-remove-sign" id="close" style="color:rgb(187,0,0);line-height: 45px;height: 45px;font-size: 18px"></span>
+            </li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+	<div id="rooms" class="container">
+		<div class="jumbotron">
+			<h2>今日账单</h2>
+			<p>本账单将会记录统计自最近一个12:00到现在的账单记录汇总</p>
+			<p>
+				自上一个12:00到现在，一共开房{{num}}个，总计营业额{{sum1+sum2}}元。现仍有{{sum2==0?0:nows.length}}个房间未退房，需押金{{yasum}}元。
+			</p>
+		</div>
+		<div class="panel panel-default" v-if="rooms!=null">
+			<div class="panel-heading">
+				今日已完成账单
+			</div>
+			<div class="panel-body">
+				<table class="table table-striped">
+				  <thead>
+					  <tr>
+						<th>房间号</th>
+						<th>类别</th>
+						<th>房价</th>
+						<th>押金</th>
+						<th>入住时间</th>
+						<th>离店时间</th>
+						<th>支付方式</th>
+						<th>住店人数</th>
+						<th>备注</th>
+					  </tr>
+					</thead>
+					<tbody>
+					  <tr v-for="record in rooms">
+						<td>{{record.id}}</td>
+						<td v-if="record.status==0">空房</td>
+						<td v-if="record.status==1">全天房</td>
+						<td v-if="record.status==2">钟点房</td>
+						<td>{{record.pay}}元</td>
+						<td>{{record.ya}}元</td>
+						<td v-if="!record.ixu">
+							<el-date-picker v-model="record.inittime" type="datetime" readonly placeholder="开房时间">
+							</el-date-picker>
+						</td>
+						<td v-if="record.ixu">续费</td>
+						<td v-if="!record.exu">
+							<el-date-picker v-model="record.endtime" type="datetime" readonly placeholder="退房时间">
+							</el-date-picker>
+						</td>
+						<td v-if="record.exu">续费</td>
+						<td v-if="record.paymethod==0">现金</td>
+						<td v-if="record.paymethod==1">微信</td>
+						<td v-if="record.paymethod==2">支付宝</td>
+						<td>{{record.number}}人</td>
+						<td>{{record.other}}</td>
+					  </tr>
+					</tbody>
+				</table>
+			</div>累计营业额{{sum1}}元。
+		</div>
+		<div class="panel panel-default" v-if="nows!=null">
+			<div class="panel-heading">
+				今日未完成账单
+			</div>
+			<div class="panel-body">
+				<table class="table table-striped">
+				  <thead>
+					  <tr>
+						<th>房间号</th>
+						<th>类别</th>
+						<th>房价</th>
+						<th>押金</th>
+						<th>入住时间</th>
+						<th>支付方式</th>
+						<th>住店人数</th>
+						<th>备注</th>
+					  </tr>
+					</thead>
+					<tbody>
+					  <tr v-for="record in nows" v-if="record.status!=0">
+						<td>{{record.id}}</td>
+						<td v-if="record.status==0">空房</td>
+						<td v-if="record.status==1">全天房</td>
+						<td v-if="record.status==2">钟点房</td>
+						<td>{{record.pay}}元</td>
+						<td>{{record.ya}}元</td>
+						<td v-if="!record.ixu">
+							<el-date-picker v-model="record.inittime" type="datetime" readonly placeholder="开房时间">
+							</el-date-picker>
+						</td>
+						<td v-if="record.ixu">续费</td>
+						<td v-if="record.paymethod==0">现金</td>
+						<td v-if="record.paymethod==1">微信</td>
+						<td v-if="record.paymethod==2">支付宝</td>
+						<td>{{record.number}}人</td>
+						<td>{{record.other}}</td>
+					  </tr>
+					</tbody>
+				</table>
+			</div>累计营业额{{sum2}}元，押金{{yasum}}元。
+		</div>
+	</div>
+
+<script src="./js/function.js"></script>
+<script type="text/javascript">
+	
+var rooms = new Vue({
+  el: '#rooms',
+  data: {
+    time:null,
+    rooms:null,
+    nows:null,
+  },
+  mounted:function(){
+		let a=this.$data
+  	// this.maxpage=8;
+	let t=new Date();
+	if(t.getHours()>=12){
+		t.setHours(12);
+		t.setMinutes(0);
+		t.setSeconds(0);
+		t.setMilliseconds(0);
+		a.time=t;
+	}else{
+		t.setDate(t.getDate()-1);
+		t.setHours(12);
+		t.setMinutes(0);
+		t.setSeconds(0);
+		t.setMilliseconds(0);
+		a.time=t;
+	}
+  	findall("room",function(res) {
+		for(i=res.length-1;i>=0;i--){
+			if(res[i].status==0){
+				res.splice(i,1)
+			}
+		}
+		a.nows=res;
+  	});
+	timeFind(a.time,function(res){
+		a.rooms=res;
+	});
+  },
+  computed:{
+	sum1:function(){
+		let i=0;
+		if(this.rooms!=null)
+		for(a=0;a<this.rooms.length;a++){
+			i+=this.rooms[a].pay;
+		}
+		return i;
+	},
+	sum2:function(){
+		let i=0;
+		if(this.nows!=null)
+		for(a=0;a<this.nows.length;a++){
+			i+=this.nows[a].pay;
+		}
+		return i;
+	},
+	yasum:function(){
+		let i=0;
+		if(this.nows!=null)
+		for(a=0;a<this.nows.length;a++){
+			i+=this.nows[a].ya;
+		}
+		return i;
+	},
+	num:function(){
+		let i=0;
+		if(this.rooms&&this.nows){
+			i=this.rooms.length+this.nows.length;
+		}
+		return i;
+	}
+  }
+  })
+</script>
+</body>
+</html>

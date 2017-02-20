@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html>
+<head> 
+	<meta charset="UTF-8" /> 
+	<title>宾馆账单</title> 
+	<script src="./js/vue.js"></script> 
+	<!-- <script src="./js/roomdata.js"></script> --> 
+	<link href="css/bootstrap.min.css" rel="stylesheet" /> 
+	<!-- <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script> -->
+	<link href="css/element.css" rel="stylesheet">
+
+	<script src="js/jquery.js"></script> 
+	<script src="js/jquery.min.js"></script>
+	<script src="js/bootstrap.min.js"></script> 
+	<link rel="stylesheet" type="text/css" href="css/you.css">
+	<script src="js/elment.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<style>
+		.txtAl{text-align: center}
+		.txtAl:hover{cursor: pointer}
+		.hw-overlay{position: fixed; top:0;left:0;width:100%;height:100%; background-color: rgba(0,0,0,0.3);z-index:10;} 
+		.hw-layer-wrap{box-sizing:border-box; width:570px; position:absolute;left:50%;top:6%; margin-left:-285px; border-radius:3px; background-color:#fff; box-shadow:1px 2px 4px 0 rgba(0,0,0,0.12); padding:45px 50px;}
+		.hwLayer-close{position:absolute; right:20px; top:20px; width:20px; height:20px; cursor:pointer; font-size:20px; color:#ccc;} 
+		.hw-layer-wrap .hw-icon{color:#b4d8f3;font-size:86px;text-align:center;} 
+		.hw-layer-wrap h4{margin:5px 0 30px; font-size:24px; color:#383c3e;} 
+		.hw-layer-wrap p{margin:30px 0; line-height:22px; color:#595d60; text-align:left;} 
+
+		@media (max-width:768px){ 
+			.hw-layer-wrap{width:350px; margin-left:-175px; margin-top:-200px; padding:45px 50px; text-align:center;} 
+		} 
+		@media (max-width:400px){
+			.hw-layer-wrap{width:350px; margin:0 auto;padding:25px 30px;}
+		} 
+	</style> 
+</head> 
+<body> 
+	<nav class="navbar navbar-inverse" role="navigation" style="-webkit-app-region: drag;"> 
+		<div class="container"> 
+			<div class="navbar-header" style="-webkit-app-region: no-drag;"> 
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar"> <span class="sr-only">Toggle navigation</span> <span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span> </button> 
+				<a class="navbar-brand" href="index.html">WanQing Hotel</a> 
+			</div> 
+			<div id="navbar" class="collapse navbar-collapse"> 
+				<ul class="nav navbar-nav" style="-webkit-app-region: no-drag;"> 
+					<li class="active"><a href="#">房间管理</a></li> 
+					<li><a href="nowreport.html">今日账单</a></li>
+					<li><a href="record.html">账单流水</a></li> 
+					<li><a href="report.html">统计报表</a></li> 
+				</ul> 
+				<ul class="nav navbar-nav navbar-right" style="-webkit-app-region: no-drag;"> 
+					<li> <span class="glyphicon glyphicon-remove-sign" id="close" style="color:rgb(187,0,0);line-height: 45px;height: 45px;font-size: 18px"></span> </li> 
+				</ul> 
+			</div>
+			<!--/.nav-collapse --> 
+		</div> 
+	</nav>  
+	<div id="rooms" class="container">
+
+		<div class="hw-overlay" id="hw-layer" v-if="temproom!=null"> 
+		    <div class="hw-layer-wrap form-horizontal">
+		        <span class="glyphicon glyphicon-remove hwLayer-close" @click="closemodel()"></span> 
+		        <div class="row"> 
+		            <form>
+		            	<div class="form-group row container">
+		            		<h2>{{temproom.id}}号房&nbsp;&nbsp;&nbsp;<small v-if="temproom.type==1">单人间</small><small v-if="temproom.type==2">标准间</small><small v-if="temproom.type==3">数码房</small></h2>
+		            	</div>
+		            	<div class="form-group row">
+		            		<label class="col-lg-3 col-xs-3 control-label">状态:</label>
+		            		<div class="col-lg-8 col-md-8">
+		            			<div class="radio radio-inline" style="margin: 0px">
+		            				<label>
+		            					<input type="radio" value=0 name="roomStatus" v-model.number="temproom.status">空房
+		            				</label>
+		            			</div>
+		            			<div class="radio radio-inline" style="margin: 0px">
+		            				<label>
+		            					<input type="radio" value=1 name="roomStatus" v-model.number="temproom.status">全天房
+		            				</label>
+		            			</div>
+		            			<div class="radio radio-inline" style="margin: 0px">
+		            				<label>
+										<input type="radio" value=2 name="roomStatus" v-model.number="temproom.status">钟点房
+		            				</label>
+		            			</div>
+		            		</div>
+		            	</div>
+		            	<div class="form-group row">
+
+		            			<label class="col-lg-3 col-xs-3 control-label">人数:</label>
+
+		            		<div class="col-lg-9 col-xs-9">
+		            		    <select class="form-control" v-model="temproom.number">
+		            		    	<option>0</option>
+		            		    	<option>1</option>
+		            		    	<option>2</option>
+		            		    	<option>3</option>
+		            		    	<option>4</option>
+		            		    	<option>5</option>
+		            		    </select>
+		            		</div>
+		            	</div>
+		            	<div class="form-group row">
+		            		<label class="col-lg-3 col-xs-3 control-label">开房时间:</label>
+		            		<div  id="datetimepicker" readonly class="col-lg-9 col-xs-9">
+
+
+								<div class="block">
+									<!--<span class="demonstration">带快捷选项</span>-->
+									<el-date-picker
+											v-model="temproom.inittime"
+											type="datetime"
+											:picker-options="pickerOptions2"
+											placeholder="选择时间"
+											align="right">
+									</el-date-picker>
+								</div>
+
+		            		</div>
+		            	</div>
+		            	<div class="form-group row">
+		            		<label class="col-lg-3 col-xs-3 control-label">房费:</label>
+		            		<div class="col-lg-8 col-xs-8">
+		            			<div class="radio radio-inline col-lg-5 col-xs-5" style="margin: 0px">
+		            				<label>
+		            					<input type="radio" value=100 name="pay" v-model.number="temproom.pay">100元
+		            				</label>
+		            			</div>
+		            			<div class="radio radio-inline col-lg-5 col-xs-5" style="margin: 0px">
+		            				<label>
+		            					<input type="radio" value=80 name="pay" v-model.number="temproom.pay">80元
+		            				</label>
+		            			</div>
+		            			<div class="radio radio-inline col-lg-5 col-xs-5" style="margin: 0px">
+		            				<label>
+		            					<input type="radio" value=50 name="pay" v-model.number="temproom.pay">50元
+		            				</label>
+		            			</div>
+		            			<div class="radio radio-inline form-group col-lg-7 col-xs-7" style="margin: 0px">
+		            				<input type="text" class="form-control" v-model.number="temproom.pay">
+		            			</div>
+		            		</div>
+		            	</div>
+		            	<div class="form-group row">
+		            		<label class="col-lg-3 col-xs-3 control-label">押金:</label>
+		            		<div class="col-lg-9 col-xs-9">
+		            			<div class="radio radio-inline col-lg-3 col-xs-3" style="margin: 0px">
+		            				<label>
+		            					<input type="radio" value=100 name="ya" v-model.number="temproom.ya">￥100
+		            				</label>
+		            			</div>
+		            			<div class="radio radio-inline col-lg-3 col-xs-3" style="margin: 0px">
+		            				<label>
+		            					<input type="radio" value=50 name="ya" v-model.number="temproom.ya">￥50
+		            				</label>
+		            			</div>
+		            			<div class="radio radio-inline col-lg-3 col-xs-3" style="margin: 0px">
+		            				<label>
+		            					<input type="radio" value=0 name="ya" v-model.number="temproom.ya">￥0
+		            				</label>
+		            			</div>
+		            		</div>
+		            	</div>
+		            	<div class="form-group row">
+		            		<label class="col-lg-3 control-label col-xs-3">支付方式:</label>
+
+		            		<div class="col-lg-9 col-xs-9">
+		            			<div class="radio radio-inline" style="margin: 0px">
+		            				<label>
+		            					<input type="radio" value=0 name="paymethod" v-model.number="temproom.paymethod">现金
+		            				</label>
+		            			</div>
+		            			<div class="radio radio-inline" style="margin: 0px">
+		            				<label>
+		            					<input type="radio" value=1 name="paymethod" v-model.number="temproom.paymethod">微信
+		            				</label>
+		            			</div>
+		            			<div class="radio radio-inline" style="margin: 0px">
+		            				<label>
+		            					<input type="radio" value=2 name="paymethod" v-model.number="temproom.paymethod">支付宝
+		            				</label>
+		            			</div>
+		            		</div>
+		            	</div>
+		            	<div class="form-group">
+		            		<label class="col-lg-3 control-label col-xs-3">备注:</label>
+
+		            		<div class="col-lg-9 col-xs-9">
+		            			<textarea class="form-control" rows="2" v-model="temproom.other" style="resize: none" placeholder="可用简写代表，如：1、接线板 2、吹风机 3、充电器"></textarea>
+		            		</div>
+		            	</div>
+		            	<br>
+		            	<div class="col-md-12">
+		            		<div class="col-md-4 col-sm-4 col-md-offset-3 col-sm-offset-3" v-if="tar.status==0">
+		            			<button type="button" class="btn btn-primary btn-lg" disabled="disabled" v-show="!openstatus">开房</button>
+		            			<button type="button" class="btn btn-primary btn-lg" @click="updateroom()" v-show="openstatus">开房</button>
+		            		</div>
+		            		<div class="col-md-8 col-sm-8" v-if="tar.status!=0">
+		            			<button type="button" class="btn btn-warning btn-lg" @click="updateroom()" v-show="!outstautus">修改</button>
+		            			<button type="button" class="btn btn-warning btn-lg" @click="renew()" v-show="outstautus">续费</button>
+		            			<button type="button" class="btn btn-danger btn-lg" @click="checkout()" v-show="outstautus">退房</button>
+		            		</div>
+		            		<button type="button" class="btn btn-default btn-lg" @click="closemodel()">取消</button>
+		            	</div>
+		            </form>
+		        </div> 
+		    </div> 
+		</div> 
+		<div class="row"> 
+			<div class="col-md-4"> 
+				<div class="col-md-12" v-if="single.length&gt;0"> 
+					<h3>单人房</h3> 
+					<div v-for="(room,index) in single" class="col-md-3 txtAl" @click="openmodel(index,1)"> 
+						<img src="img/single-0.png" class="img-responsive" /> 
+						<span class="label label-success">{{room.id}}</span> 
+					</div> 
+				</div> 
+				<div class="col-md-12" v-if="double.length&gt;0"> 
+					<h3>标准间</h3> 
+					<div v-for="(room,index) in double" class="col-md-3 txtAl" @click="openmodel(index,2)"> 
+						<img src="img/double-0.png" class="img-responsive" /> 
+						<span class="label label-success">{{room.id}}</span> 
+					</div> 
+				</div> 
+				<div class="col-md-12" v-if="computer.length&gt;0"> 
+					<h3>数码房</h3> 
+					<div v-for="(room,index) in computer" class="col-md-3 txtAl" @click="openmodel(index,3)"> 
+						<img src="img/computer-0.png" class="img-responsive" /> 
+						<span class="label label-success">{{room.id}}</span> 
+					</div> 
+				</div> 
+				<div class="col-md-12" v-if="(single.length + double.length + computer.length)==0"> 
+					<h2>所有房间均已开出</h2> 
+				</div> 
+			</div> 
+			<div class="col-md-8"> 
+				<div class="col-md-12 txtAl" v-if="allday.length&gt;0"> 
+					<h2>全天房</h2> 
+					<div class="col-md-2" v-for="(room,index) in allday" @click="openmodel(index,4)"> 
+						<img v-if="room.type==3" src="img/computer-1.png" class="img-responsive" /> 
+						<img v-if="room.type==2" src="img/double-1.png" class="img-responsive" /> 
+						<img v-if="room.type==1" src="img/single-1.png" class="img-responsive" /> 
+						<span class="label label-default">{{room.id}}</span> 
+					</div> 
+				</div> 
+				<div class="col-md-12" v-if="aclock.length&gt;0"> 
+					<h2>钟点房</h2> 
+					<div class="col-md-2 txtAl" v-for="(room,index) in aclock" @click="openmodel(index,5)"> 
+						<img v-if="room.type==3" src="img/computer-2.png" class="img-responsive" /> 
+						<img v-if="room.type==2" src="img/double-2.png" class="img-responsive" /> 
+						<img v-if="room.type==1" src="img/single-2.png" class="img-responsive" /> 
+						<span class="label label-default">{{room.id}}</span> 
+					</div> 
+				</div> 
+				<div class="col-md-12" v-if="(allday.length + aclock.length)==0"> 
+					<h1>暂无房间开出</h1> 
+				</div> 
+			</div> 
+		</div> 
+	</div> 
+	<script src="./js/function.js"></script> 
+	<script type="text/javascript">
+//import { single, double, computer } from './js/roomdata.js';
+
+
+
+
+var rooms = new Vue({
+	el: '#rooms',
+	data: {
+		message: '操作员',
+		single:[],
+		double:[],
+		computer:[],
+		allday:[],
+		aclock:[],
+		temproom:null,
+		tar:null,
+
+        pickerOptions2: {
+            shortcuts: [ {
+                text: '最近一天',
+                onClick(picker) {
+                    const end = new Date();
+                    const start = new Date();
+                    start.setTime(3600 * 1000 * 24 * 1 + start.getTime());
+                    picker.$emit('pick', [end,start ]);
+                }
+            },{
+                text: '最近一周',
+                onClick(picker) {
+                    const end = new Date();
+                    const start = new Date();
+                    start.setTime(start.getTime() + 3600 * 1000 * 24 * 7);
+                    picker.$emit('pick', [end,start ]);
+                }
+            }, {
+                text: '最近一个月',
+                onClick(picker) {
+                    const end = new Date();
+                    const start = new Date();
+                    start.setTime(start.getTime() + 3600 * 1000 * 24 * 30);
+                    picker.$emit('pick', [end,start ]);
+                }
+            }, {
+                text: '最近三个月',
+                onClick(picker) {
+                    const end = new Date();
+                    const start = new Date();
+                    start.setTime(start.getTime() + 3600 * 1000 * 24 * 90);
+                    picker.$emit('pick', [end,start ]);
+                }
+            }]
+        },
+        dateTime:null,
+
+	},
+	mounted:function(){
+		let a=this.$data
+  	// this.maxpage=8;
+  	findall("room",function(res) {
+  		for (var i = res.length - 1; i >= 0; i--) {
+  			if(res[i].status==0){
+  				if (res[i].type==1) {
+  					a.single.push(res[i])
+  				}
+  				if (res[i].type==2) {
+  					a.double.push(res[i])
+  				}
+  				if (res[i].type==3) {
+  					a.computer.push(res[i])
+  				}
+  			}
+  			if (res[i].status==1) {
+  				a.allday.push(res[i])
+  			}
+  			if (res[i].status==2) {
+  				a.aclock.push(res[i])
+  			}
+  		}
+  	})
+  },
+  methods:{
+  	openmodel:function (index,type) {
+  		if (type==1) {
+  			this.$data.temproom=this.$data.single[index]
+  		}else if (type==2) {
+  			this.$data.temproom=this.$data.double[index]
+  		}else if (type==3) {
+  			this.$data.temproom=this.$data.computer[index]
+  		}else if (type==4) {
+  			this.$data.temproom=this.$data.allday[index]
+  		}else if (type==5) {
+  			this.$data.temproom=this.$data.aclock[index]
+  		}
+  		this.$data.tar=cloneObj(this.$data.temproom);
+  		this.$data.temproom=cloneObj(this.$data.tar);
+  		if (!this.$data.temproom.inittime) {
+  			this.$data.temproom.inittime=new Date();
+  		}
+  	},
+  	closemodel:function () {
+  		this.$data.tar=null;
+  		this.$data.temproom=null;
+  	},
+  	checkin:function() {
+  		console.log(this.$data.temproom)
+  	},
+  	updateroom:function (){
+  		let a=this.$data
+  		update(this.$data.temproom,function() {
+  			findall("room",function(res) {
+  				a.single=[];
+  				a.double=[];
+  				a.computer=[];
+  				a.allday=[];
+  				a.aclock=[];
+  				for (var i = res.length - 1; i >= 0; i--) {
+  					if(res[i].status==0){
+  						if (res[i].type==1) {
+  							a.single.push(res[i])
+  						}
+  						if (res[i].type==2) {
+  							a.double.push(res[i])
+  						}
+  						if (res[i].type==3) {
+  							a.computer.push(res[i])
+  						}
+  					}
+  					if (res[i].status==1) {
+  						a.allday.push(res[i])
+  					}
+  					if (res[i].status==2) {
+  						a.aclock.push(res[i])
+  					}
+  				}
+  				}
+  			)
+  		});
+  		this.$data.tar=null;
+  		this.$data.temproom=null;
+  	},
+  	checkout:function () {
+  		let a=this.$data
+  		a.temproom.endtime = new Date();
+  		a.temproom.exu = false;
+  		insert(a.temproom,function () {
+  			a.temproom=initObj(a.temproom);
+  			update(a.temproom,function() {
+  				findall("room",function(res) {
+  					a.single=[];
+  					a.double=[];
+  					a.computer=[];
+  					a.allday=[];
+  					a.aclock=[];
+  					for (var i = res.length - 1; i >= 0; i--) {
+  						if(res[i].status==0){
+  							if (res[i].type==1) {
+  								a.single.push(res[i])
+  							}
+  							if (res[i].type==2) {
+  								a.double.push(res[i])
+  							}
+  							if (res[i].type==3) {
+  								a.computer.push(res[i])
+  							}
+  						}
+  						if (res[i].status==1) {
+  							a.allday.push(res[i])
+  						}
+  						if (res[i].status==2) {
+  							a.aclock.push(res[i])
+  						}
+  					}
+  					}
+  				)
+  			});
+  			a.tar=null;
+  			a.temproom=null;
+  		})
+  	},
+  	renew:function () {
+  		let a=this.$data;
+  		let t= new Date();
+  		t.setHours(12);
+  		t.setSeconds(1);
+  		t = (t>=new Date()?t:new Date());
+  		a.temproom.endtime = t;
+  		a.temproom.exu=true;
+  		console.log(a.temproom.endtime);
+  		insert(a.temproom,function () {
+  			a.temproom.inittime=t;
+  			a.temproom.endtime=null;
+  			a.temproom.ixu=true;
+  			a.temproom=cloneObj(a.temproom);;
+  			console.log(a.temproom)
+  			update(a.temproom,function() {
+  				findall("room",function(res) {
+  					a.single=[];
+  					a.double=[];
+  					a.computer=[];
+  					a.allday=[];
+  					a.aclock=[];
+  					for (var i = res.length - 1; i >= 0; i--) {
+  						if(res[i].status==0){
+  							if (res[i].type==1) {
+  								a.single.push(res[i])
+  							}
+  							if (res[i].type==2) {
+  								a.double.push(res[i])
+  							}
+  							if (res[i].type==3) {
+  								a.computer.push(res[i])
+  							}
+  						}
+  						if (res[i].status==1) {
+  							a.allday.push(res[i])
+  						}
+  						if (res[i].status==2) {
+  							a.aclock.push(res[i])
+  						}
+  					}
+  					}
+  				)
+  			});
+  			a.tar=null;
+  			a.temproom=null;
+  		})
+  	},
+  },
+  computed: {
+    openstatus: function () {
+      	return (this.tar.status==0&&this.temproom.status!=0&&this.temproom.number!=0)
+    },
+    outstautus: function () {
+    	return (this.tar.status!=0&&(this.temproom.status==0||(this.temproom.status==this.tar.status&&this.temproom.pay==this.tar.pay&&this.temproom.paymethod==this.tar.paymethod&&this.temproom.ya==this.tar.ya&&this.temproom.number==this.tar.number&&this.temproom.other==this.tar.other)))
+    }
+  }
+});
+//import Mint from 'mint-ui';
+//Vue.use(Mint);
+</script>  
+</body>
+</html>

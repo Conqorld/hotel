@@ -1,0 +1,16 @@
+{
+  "name": "hotel",
+  "version": "0.1.0",
+  "main": "main.js",
+  "dependencies": {
+    "electron": "^1.4.15",
+    "mongodb": "^2.2.21"
+  },
+  "devDependencies": {
+    "electron-packager": "^8.5.1"
+  },
+  "scripts":{
+  	"packager": "electron-packager . hotel --platform=win32 --arch=x64 --out ./OutApp --version 1.4.15 --overwrite --icon=./app/img/hotel.ico",
+    "start": "electron main.js"
+  }
+}
